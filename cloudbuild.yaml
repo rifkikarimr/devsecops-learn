@@ -1,3 +1,7 @@
 steps:
   - name: 'ubuntu'
     args: ['echo','Hai guys!! This is our first build run in Google Cloud Platform']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  logsBucket: 'gs://cloudbuilder-logs'
