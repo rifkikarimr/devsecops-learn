@@ -1,6 +1,8 @@
 steps:
-  - name: 'ubuntu'
-    args: ['echo','Hai guys!! This is our first build run in Google Cloud Platform']
+#execute sonarcloud scan
+- name: maven:3-jdk-11
+  entrypoint: mvn
+  args: ['verify', 'sonar:sonar', '-Dsonar.projectKey = rifkikarimr_devsecops-learn', '-Dsonar.organization=karimdev', '-Dsonar.host.url=https://sonarcloud.io', '-Dsonar.login=379429ef3f158b39d0833b366dc3f00df2454507']
 
 options:
   logging: CLOUD_LOGGING_ONLY
