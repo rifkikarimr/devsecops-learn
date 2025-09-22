@@ -2,7 +2,7 @@ steps:
 #execute sonarcloud scan
 - name: maven:3-openjdk-17
   entrypoint: mvn
-  args: ['verify', 'sonar:sonar', '-Dsonar.projectKey=rifkikarimr_devsecops-learn', '-Dsonar.organization=krmdev', '-Dsonar.host.url=https://sonarcloud.io', '-Dsonar.login=379429ef3f158b39d0833b366dc3f00df2454507']
+  args: ['verify', 'sonar:sonar', '-Dsonar.projectKey=rifkikarimr_devsecops-learn', '-Dsonar.organization=krmdev', '-Dsonar.host.url=https://sonarcloud.io', '-Dsonar.login=${_SONAR_TOKEN}']
 
 options:
   logging: CLOUD_LOGGING_ONLY
