@@ -20,7 +20,7 @@
 #   logging: CLOUD_LOGGING_ONLY
 
 
-  steps:
+steps:
   # Langkah 1: Pulihkan cache Maven dari Google Cloud Storage (GCS)
   # Langkah ini mencoba mengunduh cache dari build sebelumnya untuk mempercepat proses.
   - name: 'gcr.io/cloud-builders/gsutil'
@@ -72,6 +72,5 @@
         path: '/root/.m2'
     id: 'Save Cache'
 
-# Opsi untuk menggunakan logging standar Cloud Build
 options:
   logging: CLOUD_LOGGING_ONLY
