@@ -11,3 +11,6 @@ steps:
           export SNYK_TOKEN
           mvn snyk:test -fn 
     id: Snyk SCA
+    
+options:
+  logging: CLOUD_LOGGING_ONLY
