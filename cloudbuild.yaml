@@ -1,76 +1,76 @@
-# steps:   
-#   #Run Software Composition Analysis (SCA security scan) using Snyk
-#   - name: maven:3-openjdk-18-slim
-#     entrypoint: mvn
-#     args: ['verify', 'sonar:sonar','-Dsonar.host.url=https://sonarcloud.io','-Dsonar.organization=gcpsourcecodereposcan','-Dsonar.projectKey=gcpvulnerableprojectkey','-Dsonar.token=${_SONAR_TOKEN}']
+steps:   
+  #Run Software Composition Analysis (SCA security scan) using Snyk
+  - name: maven:3-openjdk-18-slim
+    entrypoint: mvn
+    args: ['verify', 'sonar:sonar','-Dsonar.host.url=https://sonarcloud.io','-Dsonar.organization=gcpsourcecodereposcan','-Dsonar.projectKey=gcpvulnerableprojectkey','-Dsonar.token=${_SONAR_TOKEN}']
   
-#   - name: 'ubuntu'
-#     entrypoint: bash
-#     args: 
-#         - '-c'
-#         - |-
-#           apt-get update
-#           apt-get -y install maven 
-#           SNYK_TOKEN=${_SNYK_TOKEN}
-#           export SNYK_TOKEN
-#           mvn snyk:test -fn 
-#     id: Snyk SCA
-
-# options:
-#   logging: CLOUD_LOGGING_ONLY
-
-
-steps:
-  # Langkah 1: Pulihkan cache Maven dari Google Cloud Storage (GCS)
-  # Langkah ini mencoba mengunduh cache dari build sebelumnya untuk mempercepat proses.
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['-q', 'cp', 'gs://${_CACHE_BUCKET}/m2-cache.tar.gz', '/tmp/m2-cache.tar.gz', '||', 'true']
-    volumes:
-      - name: 'm2_volume'
-        path: '/root/.m2'
-    id: 'Restore Cache'
-
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['-c', 'tar -xzf /tmp/m2-cache.tar.gz -C /root/.m2 || true']
-    volumes:
-      - name: 'm2_volume'
-        path: '/root/.m2'
-    id: 'Untar Cache'
-
-  # Langkah 2: Jalankan build, SAST (Sonar), dan SCA (Snyk) dalam SATU LANGKAH
-  # Menggunakan image Maven yang sama, lebih efisien dan konsisten.
-  - name: 'maven:3.9-eclipse-temurin-17' # Menggunakan image yang lebih modern dan spesifik
-    entrypoint: 'mvn'
-    args:
-      - 'verify' # Menjalankan kompilasi dan tes (JUnit, JaCoCo)
-      - 'snyk:test' # Menjalankan Snyk SCA scan
-      - 'sonar:sonar' # Menjalankan SonarCloud SAST scan
-      - '-Dsonar.host.url=https://sonarcloud.io'
-      - '-Dsonar.organization=gcpsourcecodereposcan'
-      - '-Dsonar.projectKey=gcpvulnerableprojectkey'
-      - '-Dsonar.token=${_SONAR_TOKEN}'
-      - '-Dsnyk.token=${_SNYK_TOKEN}' # Token Snyk bisa dimasukkan langsung di sini
-      - '-Dsnyk.failOnSeverity=high' # GAGALKAN build jika ditemukan kerentanan level 'high' atau lebih tinggi
-    volumes:
-      - name: 'm2_volume'
-        path: '/root/.m2'
-    id: 'Build and Scan'
-
-  # Langkah 3: Simpan cache Maven yang sudah diperbarui kembali ke GCS
-  # Cache dari build saat ini akan digunakan untuk build berikutnya.
   - name: 'ubuntu'
-    args: ['-c', 'tar -czf /tmp/m2-cache.tar.gz -C /root/.m2 .']
-    volumes:
-      - name: 'm2_volume'
-        path: '/root/.m2'
-    id: 'Tar Cache'
-
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['-q', 'cp', '/tmp/m2-cache.tar.gz', 'gs://${_CACHE_BUCKET}/m2-cache.tar.gz']
-    volumes:
-      - name: 'm2_volume'
-        path: '/root/.m2'
-    id: 'Save Cache'
+    entrypoint: bash
+    args: 
+        - '-c'
+        - |-
+          apt-get update
+          apt-get -y install maven 
+          SNYK_TOKEN=${_SNYK_TOKEN}
+          export SNYK_TOKEN
+          mvn snyk:test -fn 
+    id: Snyk SCA
 
 options:
   logging: CLOUD_LOGGING_ONLY
+
+
+# steps:
+#   # Langkah 1: Pulihkan cache Maven dari Google Cloud Storage (GCS)
+#   # Langkah ini mencoba mengunduh cache dari build sebelumnya untuk mempercepat proses.
+#   - name: 'gcr.io/cloud-builders/gsutil'
+#     args: ['-q', 'cp', 'gs://${_CACHE_BUCKET}/m2-cache.tar.gz', '/tmp/m2-cache.tar.gz', '||', 'true']
+#     volumes:
+#       - name: 'm2_volume'
+#         path: '/root/.m2'
+#     id: 'Restore Cache'
+
+#   - name: 'gcr.io/cloud-builders/docker'
+#     args: ['-c', 'tar -xzf /tmp/m2-cache.tar.gz -C /root/.m2 || true']
+#     volumes:
+#       - name: 'm2_volume'
+#         path: '/root/.m2'
+#     id: 'Untar Cache'
+
+#   # Langkah 2: Jalankan build, SAST (Sonar), dan SCA (Snyk) dalam SATU LANGKAH
+#   # Menggunakan image Maven yang sama, lebih efisien dan konsisten.
+#   - name: 'maven:3.9-eclipse-temurin-17' # Menggunakan image yang lebih modern dan spesifik
+#     entrypoint: 'mvn'
+#     args:
+#       - 'verify' # Menjalankan kompilasi dan tes (JUnit, JaCoCo)
+#       - 'snyk:test' # Menjalankan Snyk SCA scan
+#       - 'sonar:sonar' # Menjalankan SonarCloud SAST scan
+#       - '-Dsonar.host.url=https://sonarcloud.io'
+#       - '-Dsonar.organization=gcpsourcecodereposcan'
+#       - '-Dsonar.projectKey=gcpvulnerableprojectkey'
+#       - '-Dsonar.token=${_SONAR_TOKEN}'
+#       - '-Dsnyk.token=${_SNYK_TOKEN}' # Token Snyk bisa dimasukkan langsung di sini
+#       - '-Dsnyk.failOnSeverity=high' # GAGALKAN build jika ditemukan kerentanan level 'high' atau lebih tinggi
+#     volumes:
+#       - name: 'm2_volume'
+#         path: '/root/.m2'
+#     id: 'Build and Scan'
+
+#   # Langkah 3: Simpan cache Maven yang sudah diperbarui kembali ke GCS
+#   # Cache dari build saat ini akan digunakan untuk build berikutnya.
+#   - name: 'ubuntu'
+#     args: ['-c', 'tar -czf /tmp/m2-cache.tar.gz -C /root/.m2 .']
+#     volumes:
+#       - name: 'm2_volume'
+#         path: '/root/.m2'
+#     id: 'Tar Cache'
+
+#   - name: 'gcr.io/cloud-builders/gsutil'
+#     args: ['-q', 'cp', '/tmp/m2-cache.tar.gz', 'gs://${_CACHE_BUCKET}/m2-cache.tar.gz']
+#     volumes:
+#       - name: 'm2_volume'
+#         path: '/root/.m2'
+#     id: 'Save Cache'
+
+# options:
+#   logging: CLOUD_LOGGING_ONLY
